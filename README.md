@@ -20,15 +20,15 @@ java -jar /Users/path-to-jar-file/enker-1.jar -e myFile.txt
 
 Then decrypt with the following
 ```shell
-java -jar /Users/path-to-jar-file/enker-1.jar -d myFile.txt
+java -jar /Users/path-to-jar-file/enker-1.jar -d myFile.enc
 ```
 
 You can also have the file decrypted and output to the console instead of a file
 ```shell
-java -jar /Users/path-to-jar-file/enker-1.jar -r myFile.txt
+java -jar /Users/path-to-jar-file/enker-1.jar -r myFile.enc
 ```
 
-For usage info do run this
+For usage info run this
 ```shell
 java -jar /Users/path-to-jar-file/enker-1.jar
 ```
