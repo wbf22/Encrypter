@@ -2,45 +2,38 @@ package bf.encrypter.core.service.util;
 
 import bf.encrypter.core.objects.CipherBundle;
 
-import javax.crypto.*;
-import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.Cipher;
+import javax.crypto.SecretKey;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
-import javax.crypto.spec.PBEParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
-import java.security.spec.AlgorithmParameterSpec;
-import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
-import java.util.Arrays;
-import java.util.Base64;
 
 public class CipherUtil {
 
 
-    public static CipherBundle encrypt(String message, String password) throws Exception {
+    public static CipherBundle encrypt(String fileContent, String password) throws Exception {
         byte[] salt = new byte[8];
+        new SecureRandom().nextBytes(salt);
 
         // Derive a secret key from the password using PBKDF2
         KeySpec keySpec = new PBEKeySpec(password.toCharArray(), salt, 65536, 256);
-        SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
+        SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
         SecretKey secretKey = new SecretKeySpec(factory.generateSecret(keySpec).getEncoded(), "AES");
 
         // Initialize the cipher for encryption
-        Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-
-        byte[] iv = new byte[16];
+        Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
+        byte[] iv = new byte[12]; // Use a 12-byte IV for GCM
         new SecureRandom().nextBytes(iv);
+        cipher.init(Cipher.ENCRYPT_MODE, secretKey, new GCMParameterSpec(128, iv));
 
-        cipher.init(Cipher.ENCRYPT_MODE, secretKey, new IvParameterSpec(iv));
+        // Encrypt the fileContent
+        byte[] encryptedBytes = cipher.doFinal(fileContent.getBytes());
 
-        // Encrypt the message
-        byte[] encryptedBytes = cipher.doFinal(message.getBytes(StandardCharsets.UTF_8));
-
-        // Return the encrypted message and salt
+        // Return the encrypted fileContent and salt
         return new CipherBundle(encryptedBytes, salt, iv);
     }
 
@@ -51,18 +44,18 @@ public class CipherUtil {
 
         // Derive the secret key from the password and salt using PBKDF2
         KeySpec keySpec = new PBEKeySpec(password.toCharArray(), salt, 65536, 256);
-        SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
+        SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
         SecretKey secretKey = new SecretKeySpec(factory.generateSecret(keySpec).getEncoded(), "AES");
 
-        // Initialize the cipher for decryption
-        Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-        cipher.init(Cipher.DECRYPT_MODE, secretKey, new IvParameterSpec(cipherBundle.getIv()));
+        // Initialize the cipher for decryption using AES/GCM
+        Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
+        cipher.init(Cipher.DECRYPT_MODE, secretKey, new GCMParameterSpec(128, cipherBundle.getIv()));
 
         // Decrypt the message
         byte[] decryptedBytes = cipher.doFinal(encryptedText);
 
         // Convert the decrypted bytes to a string
-        return new String(decryptedBytes, StandardCharsets.UTF_8);
+        return new String(decryptedBytes);
     }
 
 }

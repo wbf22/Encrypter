@@ -13,12 +13,11 @@ public interface EncrypterService {
     /**
      * Decrypts an encrypted file into a new file @destinationPath
      *
-     * @param password password to encrypt the file with
+     * @param password password to decrypt the file with
      * @param filePath path to encrypted file
      * @param destinationPath path for decrypted file to be saved
-     * @return success or fail boolean
      */
-    Boolean decryptFile(String password, String filePath, String destinationPath);
+    void decryptFile(String password, String filePath, String destinationPath);
 
 
     /**
@@ -27,7 +26,15 @@ public interface EncrypterService {
      * @param password password to encrypt with
      * @param filePath path to file which is to be encrypted
      * @param destinationPath path for encrypted file to be saved
-     * @return success or fail boolean
      */
-    Boolean encryptFile(String password, String filePath, String destinationPath);
+    void encryptFile(String password, String filePath, String destinationPath);
+
+
+    /**
+     * Decrypts an encrypted file and then encrypts it with fresh a fresh salt and iv.
+     *
+     * @param password password to encrypt with
+     * @param filePath path to file which is to be re-encrypted
+     */
+    void reEncryptFile(String password, String filePath);
 }

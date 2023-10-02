@@ -1,18 +1,11 @@
 package bf.encrypter.core.service;
 
 
-import bf.encrypter.core.objects.old.KeyStoreService;
+import bf.encrypter.core.objects.CipherBundle;
+import bf.encrypter.core.service.exception.EncrypterException;
+import bf.encrypter.core.service.util.CipherUtil;
+import bf.encrypter.core.service.util.FileUtil;
 
-import javax.crypto.Cipher;
-import javax.crypto.spec.GCMParameterSpec;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.nio.ByteBuffer;
-import java.security.SecureRandom;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import static bf.encrypter.core.objects.old.KeyStoreService.getAsBytes;
 
 /**
  *
@@ -20,35 +13,62 @@ import static bf.encrypter.core.objects.old.KeyStoreService.getAsBytes;
  */
 public class EncrypterServiceImpl implements EncrypterService {
 
-    public static final int GCM_IV_LENGTH = 12;
-
-    public static final int GCM_TAG_LENGTH = 16;
 
 
     @Override
     public String readFile(String password, String filePath) {
-        // decrypt file with password and salt as hash
 
+        try {
+            CipherBundle bundle = FileUtil.readObjectFromFile(filePath, CipherBundle.class);
 
-
-        return null;
-    }
-
-
-    private static byte[] genIv(int size) {
-        byte[] initializationVector = new byte[size];
-        SecureRandom secureRandom = new SecureRandom();
-        secureRandom.nextBytes(initializationVector);
-        return initializationVector;
+            return CipherUtil.decrypt(bundle, password);
+        } catch (Exception e) {
+            throw new EncrypterException("Error during read: ", e);
+        }
     }
 
     @Override
-    public Boolean decryptFile(String password, String filePath, String destinationPath) {
-        return null;
+    public void decryptFile(String password, String filePath, String destinationPath) {
+
+        try {
+            CipherBundle bundle = FileUtil.readObjectFromFile(filePath, CipherBundle.class);
+
+            String fileContents = CipherUtil.decrypt(bundle, password);
+
+            FileUtil.writeFile(destinationPath, fileContents);
+        } catch (Exception e) {
+            throw new EncrypterException("Error decryption: ", e);
+        }
     }
 
     @Override
-    public Boolean encryptFile(String password, String filePath, String destinationPath) {
-        return null;
+    public void encryptFile(String password, String filePath, String destinationPath) {
+
+        try {
+            String fileContent = FileUtil.readFile(filePath);
+
+            CipherBundle bundle = CipherUtil.encrypt(fileContent, password);
+
+            FileUtil.writeObjectToFile(destinationPath, bundle);
+
+        } catch (Exception e) {
+            throw new EncrypterException("Error encryption: ", e);
+        }
+    }
+
+    @Override
+    public void reEncryptFile(String password, String filePath) {
+
+        try {
+            CipherBundle bundle = FileUtil.readObjectFromFile(filePath, CipherBundle.class);
+
+            String fileContents = CipherUtil.decrypt(bundle, password);
+
+            bundle = CipherUtil.encrypt(fileContents, password);
+
+            FileUtil.writeObjectToFile(filePath, bundle);
+        } catch (Exception e) {
+            throw new EncrypterException("Error during re-encrypt: ", e);
+        }
     }
 }

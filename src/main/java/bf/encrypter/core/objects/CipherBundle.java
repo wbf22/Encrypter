@@ -1,11 +1,16 @@
 package bf.encrypter.core.objects;
 
-public class CipherBundle {
+import java.io.Serializable;
+import java.util.Arrays;
+
+public class CipherBundle implements Serializable {
 
     private byte[] encryptedBytes;
     private byte[] salt;
     private byte[] iv;
 
+    public CipherBundle() {
+    }
 
     public CipherBundle(byte[] encryptedBytes, byte[] salt, byte[] iv) {
         this.encryptedBytes = encryptedBytes;
@@ -36,5 +41,15 @@ public class CipherBundle {
 
     public void setIv(byte[] iv) {
         this.iv = iv;
+    }
+
+
+    @Override
+    public String toString() {
+        return "CipherBundle{" +
+            "encryptedBytes=" + Arrays.toString(encryptedBytes) +
+            ", salt=" + Arrays.toString(salt) +
+            ", iv=" + Arrays.toString(iv) +
+            '}';
     }
 }

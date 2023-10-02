@@ -1,4 +1,4 @@
-package bf.encrypter.core.objects;
+package bf.encrypter.core.objects.old;
 
 public class FileBundle {
     String fileContentEncrypted;
